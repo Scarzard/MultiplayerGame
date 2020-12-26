@@ -4,18 +4,22 @@
 
 #include "ReplicationManagerServer.h"
 
-void ReplicationManagerServer::create(uint32 networkId)
+void ReplicationManagerServer::create(uint32 networkID)
 {
+	rep_commands[networkID] = ReplicationAction::Create;
 }
 
-void ReplicationManagerServer::update(uint32 networkId)
+void ReplicationManagerServer::update(uint32 networkID)
 {
+	rep_commands[networkID] = ReplicationAction::Update;
 }
 
-void ReplicationManagerServer::destroy(uint32 networkId)
+void ReplicationManagerServer::destroy(uint32 networkID)
 {
+	rep_commands[networkID] = ReplicationAction::Destroy;
 }
 
-void ReplicationManagerServer::write(OutputMemoryStream& packet)
+void ReplicationManagerServer::write(OutputMemoryStream& packet, ReplicationCommand action)
 {
+
 }
