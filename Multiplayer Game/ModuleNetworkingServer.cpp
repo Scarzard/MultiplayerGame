@@ -189,6 +189,11 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 		}
 
 		// TODO(you): UDP virtual connection lab session
+		else if (message == ClientMessage::Ping)
+		{
+			LOG("Client -> Server // PING received from: ", proxy->name.c_str());
+			proxy->secondsSinceLastPacket = 0.0f;
+		}
 	}
 }
 
@@ -215,6 +220,21 @@ void ModuleNetworkingServer::onUpdate()
 			if (clientProxy.connected)
 			{
 				// TODO(you): UDP virtual connection lab session
+				clientProxy.secondsSinceLastPing += Time.deltaTime;
+
+				if (clientProxy.secondsSinceLastPacket > DISCONNECT_TIMEOUT_SECONDS)
+					destroyClientProxy(&clientProxy); //Disconnects client proxy due to timeout
+
+				if (clientProxy.secondsSinceLastPing > PING_INTERVAL_SECONDS)
+				{
+					clientProxy.secondsSinceLastPing = 0.0f;
+
+					OutputMemoryStream pingPacket;
+					pingPacket << PROTOCOL_ID;
+					pingPacket << ServerMessage::Ping;
+
+					sendPacket(pingPacket, clientProxy.address);
+				}
 
 				// Don't let the client proxy point to a destroyed game object
 				if (!IsValid(clientProxy.gameObject))
@@ -223,6 +243,7 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				// TODO(you): World state replication lab session
+				
 
 				// TODO(you): Reliability on top of UDP lab session
 			}
