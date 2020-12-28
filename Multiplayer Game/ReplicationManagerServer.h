@@ -12,7 +12,7 @@ public:
 	void update(uint32 networkID);
 	void destroy(uint32 networkID);
 
-	void write(OutputMemoryStream& packet, ReplicationCommand action);
+	void write(OutputMemoryStream& packet);
 
 	std::map<uint32, ReplicationAction> rep_commands;
 };

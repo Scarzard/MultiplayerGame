@@ -20,39 +20,39 @@ void ReplicationManagerClient::read(const InputMemoryStream& packet)
 
 		case ReplicationAction::Create:
 		{
-			GameObject* go = App->modLinkingContext->getNetworkGameObject(netID);
-
-			bool dummy = false;
-
-			if (go)
-				dummy = true;
-
-			go = Instantiate();
-
-			if (!dummy)
+			if (App->modLinkingContext->getNetworkGameObject(netID) == nullptr)
 			{
-				GameObject* go_delete = App->modLinkingContext->getNetworkGameObject(netID);
-
-				if (go_delete)
-				{
-					App->modLinkingContext->unregisterNetworkGameObject(go_delete);
-					Destroy(go_delete);
-				}
-
+				GameObject* go = Instantiate();
 				App->modLinkingContext->registerNetworkGameObjectWithNetworkId(go, netID);
+
+				packet >> go->position.x;
+				packet >> go->position.y;
+				packet >> go->size.x;
+				packet >> go->size.y;
+				packet >> go->angle;
+
+				BehaviourType type;
+				packet >> type;
+
+				if (type == BehaviourType::Spaceship)
+				{
+					go->sprite = App->modRender->addSprite(go);
+					go->sprite->order = 5;
+					go->sprite->texture = App->modResources->spacecraft1;
+				}
+				else if (type == BehaviourType::Laser)
+				{
+					go->sprite = App->modRender->addSprite(go);
+					go->sprite->order = 4;
+					go->sprite->texture = App->modResources->laser;
+				}
 			}
 
-			packet >> go->position.x;
-			packet >> go->position.y;
-			packet >> go->size.x;
-			packet >> go->size.y;
-			packet >> go->angle;
-
-			std::string tex;
-			packet >> tex;
+			/*std::string tex;
+			packet >> tex;*/
 
 			// Sprite
-			if (go->sprite == nullptr)
+			/*if (go->sprite == nullptr)
 			{
 				go->sprite = App->modRender->addSprite(go);
 
@@ -81,15 +81,15 @@ void ReplicationManagerClient::read(const InputMemoryStream& packet)
 				}
 			}
 
-			packet >> go->sprite->order;
+			packet >> go->sprite->order;*/
 
-			if (dummy)
+			/*if (dummy)
 			{
 				if (go->behaviour)
 					go->behaviour->start();
 
 				App->modGameObject->Destroy(go);
-			}
+			}*/
 
 			break;
 		}

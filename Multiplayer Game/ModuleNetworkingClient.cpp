@@ -132,7 +132,14 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 	else if (state == ClientState::Connected)
 	{
 		// TODO(you): World state replication lab session
-
+		if (message == ServerMessage::Ping)
+		{
+			secondsSinceLastPing = 0.0f;
+		}
+		else if (message == ServerMessage::Rep)
+		{
+			RepManagerClient.read(packet);
+		}
 		// TODO(you): Reliability on top of UDP lab session
 	}
 }
@@ -140,7 +147,6 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 void ModuleNetworkingClient::onUpdate()
 {
 	if (state == ClientState::Stopped) return;
-
 
 	// TODO(you): UDP virtual connection lab session
 	secondsSinceLastPacket += Time.deltaTime;

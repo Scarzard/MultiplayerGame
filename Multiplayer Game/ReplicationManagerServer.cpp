@@ -19,8 +19,11 @@ void ReplicationManagerServer::destroy(uint32 networkID)
 	rep_commands[networkID] = ReplicationAction::Destroy;
 }
 
-void ReplicationManagerServer::write(OutputMemoryStream& packet, ReplicationCommand action)
+void ReplicationManagerServer::write(OutputMemoryStream& packet)
 {
+	if (rep_commands.size() == 0)
+		return;
+
 	for (std::map<uint32, ReplicationAction>::iterator it = rep_commands.begin(); it != rep_commands.end(); ++it)
 	{
 		if ((*it).second == ReplicationAction::Create)
@@ -28,9 +31,9 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet, ReplicationComm
 			packet << (*it).first;
 			packet << (*it).second;
 
-			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, false);
+			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
 
-			if (!go)
+			/*if (!go)
 			{
 				go = Instantiate();
 				go->networkId = (*it).first;
@@ -39,18 +42,7 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet, ReplicationComm
 			else
 			{
 				packet << 0;
-			}
-
-			packet << go->position.x;
-			packet << go->position.y;
-			packet << go->size.x;
-			packet << go->size.y;
-			packet << go->angle;
-
-		}
-		else if ((*it).second == ReplicationAction::Update)
-		{
-			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first);
+			}*/
 
 			packet << go->position.x;
 			packet << go->position.y;
@@ -59,11 +51,25 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet, ReplicationComm
 			packet << go->angle;
 
 			if (go->behaviour)
-				go->behaviour->write(packet);
+				packet << go->behaviour->type();
+			else
+				packet << BehaviourType::None;
+
 		}
-		ReplicationCommand command;
+		else if ((*it).second == ReplicationAction::Update)
+		{
+			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
+
+			packet << go->position.x;
+			packet << go->position.y;
+			packet << go->size.x;
+			packet << go->size.y;
+			packet << go->angle;
+		}
+		/*ReplicationCommand command;
 		command.action = (*it).second;
-		command.networkID = (*it).first;
+		command.networkID = (*it).first;*/
 	}
+
 	rep_commands.clear();
 }
