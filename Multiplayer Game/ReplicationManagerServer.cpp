@@ -26,69 +26,66 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet)
 
 	for (std::map<uint32, ReplicationAction>::iterator it = rep_commands.begin(); it != rep_commands.end(); ++it)
 	{
+		packet << (*it).first;
+		packet << (*it).second;
+
 		if ((*it).second == ReplicationAction::Create)
 		{
-			packet << (*it).first;
-			packet << (*it).second;
+			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, false);
 
-			if ((*it).second == ReplicationAction::Create)
+			if (!go)
 			{
-				GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, false);
+				go = Instantiate();
+				go->networkId = (*it).first;
+				packet << 1;
+			}
+			else
+				packet << 0;
 
-				if (!go)
-				{
-					go = Instantiate();
-					go->networkId = (*it).first;
-					packet << 1;
-				}
-				else
-					packet << 0;
+			packet << go->position.x;
+			packet << go->position.y;
+			packet << go->size.x;
+			packet << go->size.y;
+			packet << go->angle;
 
+			std::string tex = "";
+			if (go->sprite)
+			{
+				tex = go->sprite->texture->filename;
+				packet << tex;
+				packet << go->sprite->order;
+			}
+			else
+			{
+				packet << tex;
+				packet << 0;
+			}
+
+
+			if (go->behaviour)
+				packet << go->behaviour->type();
+			else
+				packet << BehaviourType::None;
+
+			packet << go->tag;
+		}
+		else if ((*it).second == ReplicationAction::Update)
+		{
+			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
+
+			if (go)
+			{
 				packet << go->position.x;
 				packet << go->position.y;
 				packet << go->size.x;
 				packet << go->size.y;
 				packet << go->angle;
-
-				std::string tex = "";
-				if (go->sprite)
-				{
-					tex = go->sprite->texture->filename;
-					packet << tex;
-					packet << go->sprite->order;
-				}
-				else
-				{
-					packet << tex;
-					packet << 0;
-				}
-
-
-				if (go->behaviour)
-					packet << go->behaviour->type();
-				else
-					packet << BehaviourType::None;
-
-				packet << go->tag;
 			}
-			else if ((*it).second == ReplicationAction::Update)
-			{
-				GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
-
-				if (go)
-				{
-					packet << go->position.x;
-					packet << go->position.y;
-					packet << go->size.x;
-					packet << go->size.y;
-					packet << go->angle;
-				}
-			}
-
-			ReplicationCommand command;
-			command.action = (*it).second;
-			command.networkID = (*it).first;
 		}
+
+		ReplicationCommand command;
+		command.action = (*it).second;
+		command.networkID = (*it).first;
 	}
 
 	rep_commands.clear();

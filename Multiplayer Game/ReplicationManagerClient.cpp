@@ -106,9 +106,6 @@ void ReplicationManagerClient::read(const InputMemoryStream& packet)
 				packet >> go->size.y;
 				packet >> go->angle;
 
-				if (go->behaviour)
-					go->behaviour->read(packet);
-
 			break;
 		}
 			
