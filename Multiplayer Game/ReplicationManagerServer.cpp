@@ -31,44 +31,64 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet)
 			packet << (*it).first;
 			packet << (*it).second;
 
-			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
-
-			/*if (!go)
+			if ((*it).second == ReplicationAction::Create)
 			{
-				go = Instantiate();
-				go->networkId = (*it).first;
-				packet << 1;
+				GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, false);
+
+				if (!go)
+				{
+					go = Instantiate();
+					go->networkId = (*it).first;
+					packet << 1;
+				}
+				else
+					packet << 0;
+
+				packet << go->position.x;
+				packet << go->position.y;
+				packet << go->size.x;
+				packet << go->size.y;
+				packet << go->angle;
+
+				std::string tex = "";
+				if (go->sprite)
+				{
+					tex = go->sprite->texture->filename;
+					packet << tex;
+					packet << go->sprite->order;
+				}
+				else
+				{
+					packet << tex;
+					packet << 0;
+				}
+
+
+				if (go->behaviour)
+					packet << go->behaviour->type();
+				else
+					packet << BehaviourType::None;
+
+				packet << go->tag;
 			}
-			else
+			else if ((*it).second == ReplicationAction::Update)
 			{
-				packet << 0;
-			}*/
+				GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
 
-			packet << go->position.x;
-			packet << go->position.y;
-			packet << go->size.x;
-			packet << go->size.y;
-			packet << go->angle;
+				if (go)
+				{
+					packet << go->position.x;
+					packet << go->position.y;
+					packet << go->size.x;
+					packet << go->size.y;
+					packet << go->angle;
+				}
+			}
 
-			if (go->behaviour)
-				packet << go->behaviour->type();
-			else
-				packet << BehaviourType::None;
-
+			ReplicationCommand command;
+			command.action = (*it).second;
+			command.networkID = (*it).first;
 		}
-		else if ((*it).second == ReplicationAction::Update)
-		{
-			GameObject* go = App->modLinkingContext->getNetworkGameObject((*it).first, true);
-
-			packet << go->position.x;
-			packet << go->position.y;
-			packet << go->size.x;
-			packet << go->size.y;
-			packet << go->angle;
-		}
-		/*ReplicationCommand command;
-		command.action = (*it).second;
-		command.networkID = (*it).first;*/
 	}
 
 	rep_commands.clear();

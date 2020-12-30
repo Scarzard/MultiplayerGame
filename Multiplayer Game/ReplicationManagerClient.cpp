@@ -20,76 +20,78 @@ void ReplicationManagerClient::read(const InputMemoryStream& packet)
 
 		case ReplicationAction::Create:
 		{
-			if (App->modLinkingContext->getNetworkGameObject(netID) == nullptr)
+			int tmp = 0;
+			packet >> tmp;
+
+			GameObject* go = App->modLinkingContext->getNetworkGameObject(netID);
+			bool dummy = false;
+
+			if (go)
+				dummy = true;
+
+			go = Instantiate();
+
+			if (!dummy)
 			{
-				GameObject* go = Instantiate();
+				GameObject* to_delete = App->modLinkingContext->getNetworkGameObject(netID, false);
+				if (to_delete)
+				{
+					App->modLinkingContext->unregisterNetworkGameObject(to_delete);
+					Destroy(to_delete);
+				}
+
 				App->modLinkingContext->registerNetworkGameObjectWithNetworkId(go, netID);
+			}
 
-				packet >> go->position.x;
-				packet >> go->position.y;
-				packet >> go->size.x;
-				packet >> go->size.y;
-				packet >> go->angle;
+			packet >> go->position.x;
+			packet >> go->position.y;
+			packet >> go->size.x;
+			packet >> go->size.y;
+			packet >> go->angle;
 
-				BehaviourType type;
-				packet >> type;
-
-				if (type == BehaviourType::Spaceship)
-				{
-					go->sprite = App->modRender->addSprite(go);
-					go->sprite->order = 5;
+			std::string tex;
+			packet >> tex;
+			go->sprite = App->modRender->addSprite(go);
+			packet >> go->sprite->order;
+			if (go->sprite)
+			{
+				if (tex == "spacecraft1.png")
 					go->sprite->texture = App->modResources->spacecraft1;
-				}
-				else if (type == BehaviourType::Laser)
-				{
-					go->sprite = App->modRender->addSprite(go);
-					go->sprite->order = 4;
+				else if (tex == "spacecraft2.png")
+					go->sprite->texture = App->modResources->spacecraft2;
+				else if (tex == "spacecraft3.png")
+					go->sprite->texture = App->modResources->spacecraft3;
+				else if (tex == "laser.png")
 					go->sprite->texture = App->modResources->laser;
-				}
-			}
-
-			/*std::string tex;
-			packet >> tex;*/
-
-			// Sprite
-			/*if (go->sprite == nullptr)
-			{
-				go->sprite = App->modRender->addSprite(go);
-
-				if (go->sprite)
+				else if (tex == "explosion1.png")
 				{
-
-					if (tex == "spacecraft1.png")
-						go->sprite->texture = App->modResources->spacecraft1;
-
-					else if (tex == "spacecraft2.png")
-						go->sprite->texture = App->modResources->spacecraft2;
-
-					else if (tex == "spacecraft3.png")
-						go->sprite->texture = App->modResources->spacecraft3;
-
-					else if (tex == "laser.png")
-						go->sprite->texture = App->modResources->laser;
-
-					else if (tex == "explosion1.png")
-					{
-						go->sprite->texture = App->modResources->explosion1;
-						go->animation = App->modRender->addAnimation(go);
-						go->animation->clip = App->modResources->explosionClip;
-						App->modSound->playAudioClip(App->modResources->audioClipExplosion);
-					}
+					go->sprite->texture = App->modResources->explosion1;
+					go->animation = App->modRender->addAnimation(go);
+					go->animation->clip = App->modResources->explosionClip;
+					App->modSound->playAudioClip(App->modResources->audioClipExplosion);
 				}
 			}
 
-			packet >> go->sprite->order;*/
+			BehaviourType type;
+			packet >> type;
 
-			/*if (dummy)
+			if (type == BehaviourType::Spaceship)
+				go->behaviour = App->modBehaviour->addSpaceship(go);
+			else if (type == BehaviourType::Laser)
+				go->behaviour = App->modBehaviour->addLaser(go);
+
+			packet >> go->tag;
+
+			//--------------------------------------------------------------------------------------------
+
+			if (dummy)
+				Destroy(go);
+
+			if (tmp == 1)
 			{
-				if (go->behaviour)
-					go->behaviour->start();
-
-				App->modGameObject->Destroy(go);
-			}*/
+				App->modLinkingContext->unregisterNetworkGameObject(go);
+				Destroy(go);
+			}
 
 			break;
 		}
@@ -98,14 +100,14 @@ void ReplicationManagerClient::read(const InputMemoryStream& packet)
 		{
 			GameObject* go = App->modLinkingContext->getNetworkGameObject(netID);
 
-			if (go)
-			{
 				packet >> go->position.x;
 				packet >> go->position.y;
 				packet >> go->size.x;
 				packet >> go->size.y;
 				packet >> go->angle;
-			}
+
+				if (go->behaviour)
+					go->behaviour->read(packet);
 
 			break;
 		}
@@ -118,7 +120,6 @@ void ReplicationManagerClient::read(const InputMemoryStream& packet)
 			if (go)
 			{
 				App->modLinkingContext->unregisterNetworkGameObject(go);
-
 				Destroy(go);
 			}
 
