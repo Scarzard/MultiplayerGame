@@ -48,9 +48,7 @@ void DeliveryManager::writeSequenceNumbersPendingAck(OutputMemoryStream& packet)
 	if (hasSequenceNumberspendingAck())
 	{
 		for (uint32 size : PendingAcks)
-		{
 			packet << size;
-		}
 	}
 	PendingAcks.clear();
 }
@@ -65,10 +63,11 @@ void DeliveryManager::processAckdSequenceNumbers(const InputMemoryStream& packet
 
 		for (std::vector<Delivery*>::iterator it = PendingDeliveries.begin(); it != PendingDeliveries.end(); it++)
 		{
-			if ((*it)->sequenceNumber == seqNumber) {
-				if ((*it)->delegate) {
+			if ((*it)->sequenceNumber == seqNumber) 
+			{
+				if ((*it)->delegate)
 					(*it)->delegate->onDeliverySuccess(this);
-				}
+				
 				PendingDeliveries.erase(it);
 				found = true;
 				break;
@@ -90,9 +89,7 @@ void DeliveryManager::processTimedOutPackets()
 			delete delivery;
 		}
 		else
-		{
 			break;
-		}
 	}
 }
 

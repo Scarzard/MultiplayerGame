@@ -19,7 +19,7 @@ void ReplicationManagerServer::destroy(uint32 networkID)
 	rep_commands[networkID] = ReplicationAction::Destroy;
 }
 
-void ReplicationManagerServer::write(OutputMemoryStream& packet)
+void ReplicationManagerServer::write(OutputMemoryStream& packet, ReplicationManagerDeliveryDelegate* delegate)
 {
 	if (rep_commands.size() == 0)
 		return;
@@ -86,18 +86,12 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet)
 		ReplicationCommand command;
 		command.action = (*it).second;
 		command.networkID = (*it).first;
+
+		delegate->rep_commands.push_back(command);
 	}
+	delegate->RepManagerServer = this;
 
 	rep_commands.clear();
-}
-
-ReplicationManagerDeliveryDelegate::ReplicationManagerDeliveryDelegate(ReplicationManagerServer* RepManagerServer)
-{
-	this->RepManagerServer = RepManagerServer;
-}
-
-ReplicationManagerDeliveryDelegate::~ReplicationManagerDeliveryDelegate()
-{
 }
 
 void ReplicationManagerDeliveryDelegate::onDeliverySuccess(DeliveryManager* deliveryManager)
