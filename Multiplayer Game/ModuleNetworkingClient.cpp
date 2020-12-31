@@ -138,6 +138,12 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 		}
 		else if (message == ServerMessage::Rep)
 		{
+			uint32 sequenceNumber;
+			packet >> sequenceNumber;
+
+			if (sequenceNumber > inputDataFront)
+				inputDataFront = sequenceNumber;
+
 			RepManagerClient.read(packet);
 		}
 		// TODO(you): Reliability on top of UDP lab session
@@ -222,9 +228,6 @@ void ModuleNetworkingClient::onUpdate()
 				packet << inputPacketData.verticalAxis;
 				packet << inputPacketData.buttonBits;
 			}
-
-			// Clear the queue
-			inputDataFront = inputDataBack;
 
 			sendPacket(packet, serverAddress);
 		}
