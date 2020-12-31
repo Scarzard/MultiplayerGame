@@ -195,11 +195,6 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 			LOG("Client -> Server // PING received from: ", proxy->name.c_str());
 			proxy->secondsSinceLastPacket = 0.0f;
 		}
-		else if (message == ClientMessage::Ack)
-		{
-			if (proxy)
-				proxy->DeliveryManager.processAckdSequenceNumbers(packet);
-		}
 	}
 }
 
@@ -261,16 +256,12 @@ void ModuleNetworkingServer::onUpdate()
 
 					packet << clientProxy.nextExpectedInputSequenceNumber;
 
-					Delivery* tmp = clientProxy.DeliveryManager.writeSequenceNumber(packet);
-					ReplicationManagerDeliveryDelegate* delegate = new ReplicationManagerDeliveryDelegate();
-					tmp->delegate = delegate;
-
-					clientProxy.RepManagerServer.write(packet, delegate);
+					clientProxy.RepManagerServer.write(packet);
 					sendPacket(packet, clientProxy.address);
 				}
 
+
 				// TODO(you): Reliability on top of UDP lab session
-				clientProxy.DeliveryManager.processTimedOutPackets();
 
 			}
 		}

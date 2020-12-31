@@ -144,11 +144,9 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 			if (sequenceNumber > inputDataFront)
 				inputDataFront = sequenceNumber;
 
-			if (_DeliveryManager.processSequenceNumber(packet))
-			{
-				RepManagerClient.read(packet);
-			}
+			RepManagerClient.read(packet);
 		}
+		// TODO(you): Reliability on top of UDP lab session
 	}
 }
 
@@ -221,11 +219,6 @@ void ModuleNetworkingClient::onUpdate()
 			packet << ClientMessage::Input;
 
 			// TODO(you): Reliability on top of UDP lab session
-			OutputMemoryStream ack;
-			ack << PROTOCOL_ID;
-			ack << ClientMessage::Ack;
-			_DeliveryManager.writeSequenceNumbersPendingAck(ack);
-			sendPacket(ack, serverAddress);
 
 			for (uint32 i = inputDataFront; i < inputDataBack; ++i)
 			{

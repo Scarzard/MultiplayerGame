@@ -4,8 +4,6 @@
 
 #include <map>
 
-class ReplicationManagerDeliveryDelegate;
-
 class ReplicationManagerServer 
 {
 public:
@@ -14,7 +12,7 @@ public:
 	void update(uint32 networkID);
 	void destroy(uint32 networkID);
 
-	void write(OutputMemoryStream& packet, ReplicationManagerDeliveryDelegate* delegate);
+	void write(OutputMemoryStream& packet);
 
 	std::map<uint32, ReplicationAction> rep_commands;
 };
@@ -22,12 +20,15 @@ public:
 class ReplicationManagerDeliveryDelegate : public DeliveryDelegate
 {
 public:
+	ReplicationManagerDeliveryDelegate(ReplicationManagerServer* RepManagerServer);
+	~ReplicationManagerDeliveryDelegate();
 
 	void onDeliverySuccess(DeliveryManager* deliveryManager) override;
 	void onDeliveryFailure(DeliveryManager* deliveryManager) override;
 
 	void AddCommand(const ReplicationCommand& replicationCommand);
 
+private:
 	ReplicationManagerServer* RepManagerServer;
 	std::vector<ReplicationCommand> rep_commands;
 };
