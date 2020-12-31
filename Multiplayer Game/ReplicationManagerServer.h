@@ -16,3 +16,19 @@ public:
 
 	std::map<uint32, ReplicationAction> rep_commands;
 };
+
+class ReplicationManagerDeliveryDelegate : public DeliveryDelegate
+{
+public:
+	ReplicationManagerDeliveryDelegate(ReplicationManagerServer* RepManagerServer);
+	~ReplicationManagerDeliveryDelegate();
+
+	void onDeliverySuccess(DeliveryManager* deliveryManager) override;
+	void onDeliveryFailure(DeliveryManager* deliveryManager) override;
+
+	void AddCommand(const ReplicationCommand& replicationCommand);
+
+private:
+	ReplicationManagerServer* RepManagerServer;
+	std::vector<ReplicationCommand> rep_commands;
+};

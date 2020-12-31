@@ -104,7 +104,7 @@ private:
 
 	// TODO(you): Reliability on top of UDP lab session
 
-
+	DeliveryManager DeliveryManager;
 
 	//////////////////////////////////////////////////////////////////////
 	// Latency management

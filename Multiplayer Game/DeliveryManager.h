@@ -14,9 +14,8 @@ public:
 struct Delivery
 {
 	uint32 sequenceNumber = 0;
-	double startTime = 0.0;
+	double dispatchTime = 0.0;
 	DeliveryDelegate* delegate = nullptr;
-
 };
 
 class DeliveryManager
@@ -49,4 +48,5 @@ private:
 	//Receiver side
 	uint32	NextExpectedSequenceNumber = 0;
 	std::vector<uint32> PendingAcks;
+
 };

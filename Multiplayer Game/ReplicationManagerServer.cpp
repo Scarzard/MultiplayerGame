@@ -90,3 +90,57 @@ void ReplicationManagerServer::write(OutputMemoryStream& packet)
 
 	rep_commands.clear();
 }
+
+ReplicationManagerDeliveryDelegate::ReplicationManagerDeliveryDelegate(ReplicationManagerServer* RepManagerServer)
+{
+	this->RepManagerServer = RepManagerServer;
+}
+
+ReplicationManagerDeliveryDelegate::~ReplicationManagerDeliveryDelegate()
+{
+}
+
+void ReplicationManagerDeliveryDelegate::onDeliverySuccess(DeliveryManager* deliveryManager)
+{
+}
+
+void ReplicationManagerDeliveryDelegate::onDeliveryFailure(DeliveryManager* deliveryManager)
+{
+	for (const ReplicationCommand& replicationCommand : rep_commands)
+	{
+		switch (replicationCommand.action)
+		{
+		case ReplicationAction::Create:
+		{
+			if (App->modLinkingContext->getNetworkGameObject(replicationCommand.networkID) != nullptr)
+			{
+				RepManagerServer->create(replicationCommand.networkID);
+			}
+			break;
+		}
+
+		case ReplicationAction::Update:
+		{
+			if (App->modLinkingContext->getNetworkGameObject(replicationCommand.networkID) != nullptr)
+			{
+				RepManagerServer->update(replicationCommand.networkID);
+			}
+			break;
+		}
+
+		case ReplicationAction::Destroy:
+		{
+			if (App->modLinkingContext->getNetworkGameObject(replicationCommand.networkID) == nullptr)
+			{
+				RepManagerServer->destroy(replicationCommand.networkID);
+			}
+			break;
+		}
+		}
+	}
+}
+
+void ReplicationManagerDeliveryDelegate::AddCommand(const ReplicationCommand& replicationCommand)
+{
+	rep_commands.push_back(replicationCommand);
+}
