@@ -34,7 +34,7 @@ Implementing a simple 2D game prototype using an engine provided in class.
 
 - Delivery Manager: This tecnique notifies about failed replications. If this happens, the delivery manager sends the command again.
 
-##### Problems
+#### Problems
 
 DeliveryManager could not be implemented due to poor time management. The functionalities are all done but for some reason it messes with World State Replication. Meaning that players don't process the packets correctly, so they have their screen frozen. With a little bit more time it would've been fully implemented.
 
